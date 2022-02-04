@@ -77,12 +77,14 @@ const play = async () => {
 
       suggestions = getValidAnswers(guess, outputs, suggestions);
 
-      console.log("Valid answers remaining:", suggestions.length);
-      console.log("Some possible answers:");
-      let i = 0;
-      while (i < 25 && i < suggestions.length) {
-        console.log(suggestions[i]);
-        i++;
+      if (suggestions.length > 0) {
+        console.log("Valid answers remaining:", suggestions.length);
+        console.log("Some possible answers:");
+        let i = 0;
+        while (i < 25 && i < suggestions.length) {
+          console.log(suggestions[i]);
+          i++;
+        }
       }
 
       guessCount++;
