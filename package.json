@@ -1,0 +1,13 @@
+{
+  "name": "wordle-solver",
+  "version": "1.0.0",
+  "description": "I/O for terminal to solve the daily Wordle",
+  "main": "index.js",
+  "repository": "git@github.com:CWallis92/wordle-solver.git",
+  "author": "Chris <chriswallis92@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "chalk": "^5.0.0",
+    "inquirer": "^8.2.0"
+  }
+}
