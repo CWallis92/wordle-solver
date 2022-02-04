@@ -39,19 +39,16 @@ const play = async () => {
     let outputs = [],
       suggestions;
 
-    while (
-      guessCount < 6 &&
-      (outputs.length === 0 || !outputs.every((res) => res === "correct"))
-    ) {
-      const continueGameQuestion = [
-        {
-          type: "input",
-          name: "guess",
-          message: "Have another go:",
-          validate: async (input) => await isValidGuess(input, suggestions),
-        },
-      ];
+    const continueGameQuestion = [
+      {
+        type: "input",
+        name: "guess",
+        message: "Have another go:",
+        validate: async (input) => await isValidGuess(input, suggestions),
+      },
+    ];
 
+    while (guessCount < 6) {
       const { guess } =
         guessCount === 0
           ? await inquirer.prompt(startGameQuestion)
@@ -75,19 +72,19 @@ const play = async () => {
 
       console.log(response);
 
+      guessCount++;
+
       suggestions = getValidAnswers(guess, outputs, suggestions);
 
-      if (suggestions.length > 0) {
-        console.log("Valid answers remaining:", suggestions.length);
-        console.log("Some possible answers:");
-        let i = 0;
-        while (i < 25 && i < suggestions.length) {
-          console.log(suggestions[i]);
-          i++;
-        }
-      }
+      if (suggestions.length === 0) break;
 
-      guessCount++;
+      console.log("Valid answers remaining:", suggestions.length);
+      console.log("Some possible answers:");
+      let i = 0;
+      while (i < 25 && i < suggestions.length) {
+        console.log(suggestions[i]);
+        i++;
+      }
     }
 
     if (outputs.every((res) => res === "correct")) {
