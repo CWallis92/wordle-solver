@@ -1,7 +1,7 @@
 import validWords from "./validWords.js";
 import otherAnswers from "./otherAnswers.js";
 
-export const isValidGuess = async (input, list = validWords) => {
+export const isValidGuess = async (input, list = otherAnswers) => {
   return (
     (/[a-z]{5}/.test(input) &&
       (validWords.includes(input) || otherAnswers.includes(input)) &&
