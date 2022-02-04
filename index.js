@@ -11,16 +11,7 @@ const startGameQuestion = [
     type: "input",
     name: "guess",
     message: "Guess the word!",
-    validate: isValidGuess,
-  },
-];
-
-const continueGameQuestion = [
-  {
-    type: "input",
-    name: "guess",
-    message: "Have another go:",
-    validate: isValidGuess,
+    validate: async (input) => await isValidGuess(input),
   },
 ];
 
@@ -45,18 +36,28 @@ const play = async () => {
     await page.waitForTimeout(1000);
 
     let guessCount = 0;
-    let outputs = [];
+    let outputs = [],
+      suggestions;
 
     while (
       guessCount < 6 &&
       (outputs.length === 0 || !outputs.every((res) => res === "correct"))
     ) {
+      const continueGameQuestion = [
+        {
+          type: "input",
+          name: "guess",
+          message: "Have another go:",
+          validate: async (input) => await isValidGuess(input, suggestions),
+        },
+      ];
+
       const { guess } =
         guessCount === 0
           ? await inquirer.prompt(startGameQuestion)
           : await inquirer.prompt(continueGameQuestion);
 
-      outputs = await makeGuess(page, guess, guessCount);
+      outputs = await makeGuess(page, guess, guessCount, suggestions);
 
       const response = guess
         .split("")
@@ -74,7 +75,7 @@ const play = async () => {
 
       console.log(response);
 
-      const suggestions = getValidAnswers(guess, outputs);
+      suggestions = getValidAnswers(guess, outputs, suggestions);
 
       console.log("Valid answers remaining:", suggestions.length);
       console.log("Some possible answers:");

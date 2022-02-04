@@ -1,20 +1,21 @@
 import validWords from "./validWords.js";
 import otherAnswers from "./otherAnswers.js";
 
-export const isValidGuess = async (input) => {
+export const isValidGuess = async (input, list = validWords) => {
   return (
     (/[a-z]{5}/.test(input) &&
-      (validWords.includes(input) || otherAnswers.includes(input))) ||
-    "Not a valid 5 letter word"
+      (validWords.includes(input) || otherAnswers.includes(input)) &&
+      list.includes(input)) ||
+    "Not a valid 5 letter word in the remaining list"
   );
 };
 
-export const getValidAnswers = (guess, responses) => {
+export const getValidAnswers = (guess, responses, listToCheck = validWords) => {
   const validLetters = guess
     .split("")
     .filter((_, index) => responses[index] !== "absent");
 
-  const fullFilter = validWords.filter((word) => {
+  const fullFilter = listToCheck.filter((word) => {
     return (
       word !== guess &&
       word.split("").every((letter, index) => {
