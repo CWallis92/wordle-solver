@@ -8,7 +8,6 @@
   "license": "MIT",
   "bin": {
     "playwordle": "./index.js",
-    "testscript": "./test.js"
   },
   "dependencies": {
     "chalk": "^5.0.0",
