@@ -7,7 +7,7 @@
   "author": "Chris <chriswallis92@gmail.com>",
   "license": "MIT",
   "bin": {
-    "playwordle": "./index.js",
+    "playwordle": "./index.js"
   },
   "dependencies": {
     "chalk": "^5.0.0",
