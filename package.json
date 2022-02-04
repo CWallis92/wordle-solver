@@ -6,15 +6,17 @@
   "repository": "git@github.com:CWallis92/wordle-solver.git",
   "author": "Chris <chriswallis92@gmail.com>",
   "license": "MIT",
+  "bin": {
+    "playwordle": "./index.js",
+    "testscript": "./test.js"
+  },
   "dependencies": {
     "chalk": "^5.0.0",
     "inquirer": "^8.2.0",
     "puppeteer": "^13.1.3",
-    "puppeteer-shadow-selector": "^1.0.1"
+    "puppeteer-shadow-selector": "^1.0.1",
+    "wordle-solver": "^1.0.6"
   },
   "type": "module",
-  "bin": {
-    "playwordle": "./index.js"
-  },
   "preferGlobal": true
 }
