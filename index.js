@@ -1,23 +1,12 @@
-#! /usr/bin/env node
+#!/usr/bin/env node
 
 import chalk from "chalk";
 import inquirer from "inquirer";
 import puppeteer from "puppeteer";
 
-import validWords from "./validWords.js";
-import otherAnswers from "./otherAnswers.js";
+import makeGuess, { isValidGuess, getValidAnswers } from "./guess.js";
 
-const gameSelector = "game-app::shadow-dom(#game)";
-
-const isValidGuess = async (input) => {
-  return (
-    (/[a-z]{5}/.test(input) &&
-      (validWords.includes(input) || otherAnswers.includes(input))) ||
-    "Not a valid 5 letter word"
-  );
-};
-
-const startGameQuestions = [
+const startGameQuestion = [
   {
     type: "input",
     name: "guess",
@@ -26,50 +15,17 @@ const startGameQuestions = [
   },
 ];
 
-const continueGameQuestions = [
+const continueGameQuestion = [
   {
     type: "input",
-    name: "newGuess",
+    name: "guess",
     message: "Have another go:",
     validate: isValidGuess,
   },
 ];
 
-const makeGuess = async (page, word, guessNumber = 1) => {
-  for (const letter of word) {
-    await page.waitForTimeout(50);
-
-    const key = await page.evaluateHandle(`
-        document.querySelector("body > game-app").shadowRoot.querySelector("#game > game-keyboard").shadowRoot.querySelector("#keyboard button[data-key='${letter.toLowerCase()}']")`);
-    if (key) await key.click();
-    else throw new Error("Key not found");
-  }
-
-  const enter = await page.evaluateHandle(`
-        document.querySelector("body > game-app").shadowRoot.querySelector("#game > game-keyboard").shadowRoot.querySelector("#keyboard button[data-key='↵']")`);
-  if (enter) await enter.click();
-
-  await page.waitForTimeout(2000);
-
-  let out = [];
-
-  for (let i = 1; i <= word.length; i++) {
-    const answer1 = await page.evaluateHandle(
-      `document.querySelector("body > game-app").shadowRoot.querySelector("#board > game-row:nth-child(${guessNumber})").shadowRoot.querySelector("div > game-tile:nth-child(${i})")`
-    );
-    const ansOut = await page.evaluateHandle((body) => body._state, answer1);
-    out.push(await ansOut.jsonValue());
-  }
-
-  return out;
-};
-
 // Start the game
 const play = async () => {
-  const { guess } = await inquirer.prompt(startGameQuestions);
-
-  console.log(`You guessed '${guess}'. Fetching...`);
-
   const browser = await puppeteer.launch({ headless: true });
   const page = await browser.newPage();
 
@@ -78,10 +34,9 @@ const play = async () => {
       waitUntil: ["networkidle0", "load"],
     });
 
-    await page.waitForTimeout(1000);
     const closeIcon = await page.evaluateHandle(`
-      document
-        .querySelector("body > game-app")
+    document
+    .querySelector("body > game-app")
         .shadowRoot.querySelector("#game > game-modal")
         .shadowRoot.querySelector("div > div > div > game-icon")
     `);
@@ -89,31 +44,21 @@ const play = async () => {
 
     await page.waitForTimeout(1000);
 
-    let guessCount = 1;
-    let outputs = await makeGuess(page, guess);
+    let guessCount = 0;
+    let outputs = [];
 
-    let response = guess
-      .split("")
-      .map((letter, index) => {
-        switch (outputs[index]) {
-          case "present":
-            return chalk.bgYellow(letter);
-          case "correct":
-            return chalk.bgGreen(letter);
-          default:
-            return chalk.bgGray(letter);
-        }
-      })
-      .join("");
+    while (
+      guessCount < 6 &&
+      (outputs.length === 0 || !outputs.every((res) => res === "correct"))
+    ) {
+      const { guess } =
+        guessCount === 0
+          ? await inquirer.prompt(startGameQuestion)
+          : await inquirer.prompt(continueGameQuestion);
 
-    console.log(response);
+      outputs = await makeGuess(page, guess, guessCount);
 
-    while (guessCount <= 6 && !outputs.every((res) => res === "correct")) {
-      guessCount++;
-      const { newGuess } = await inquirer.prompt(continueGameQuestions);
-      outputs = await makeGuess(page, newGuess, guessCount);
-
-      response = newGuess
+      const response = guess
         .split("")
         .map((letter, index) => {
           switch (outputs[index]) {
@@ -128,6 +73,18 @@ const play = async () => {
         .join("");
 
       console.log(response);
+
+      const suggestions = getValidAnswers(guess, outputs);
+
+      console.log("Valid answers remaining:", suggestions.length);
+      console.log("Some possible answers:");
+      let i = 0;
+      while (i < 25 && i < suggestions.length) {
+        console.log(suggestions[i]);
+        i++;
+      }
+
+      guessCount++;
     }
 
     if (outputs.every((res) => res === "correct")) {
@@ -135,7 +92,7 @@ const play = async () => {
         `You won in ${guessCount} guess${guessCount === 1 ? "" : "es"}!`
       );
     } else {
-      console.log("That wasn't it!");
+      console.log("Better luck next time!");
     }
   } catch (err) {
     console.error(err);
