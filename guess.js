@@ -1,5 +1,5 @@
-import validWords from "./validWords.js";
-import otherAnswers from "./otherAnswers.js";
+import validWords from "./words/validWords.js";
+import otherAnswers from "./words/otherAnswers.js";
 
 export const isValidGuess = async (
   input,
@@ -43,18 +43,22 @@ export const getValidAnswers = (guess, responses, listToCheck = validWords) => {
 };
 
 export default async function makeGuess(page, word, guessNumber = 0) {
+  const keyboard = await page.evaluateHandle(`
+        document.querySelector("body > game-app").shadowRoot.querySelector("#game > game-keyboard").shadowRoot.querySelector("#keyboard")`);
+
   for (const letter of word) {
     await page.waitForTimeout(50);
 
-    const key = await page.evaluateHandle(`
-        document.querySelector("body > game-app").shadowRoot.querySelector("#game > game-keyboard").shadowRoot.querySelector("#keyboard button[data-key='${letter.toLowerCase()}']")`);
-    if (key) await key.click();
-    else throw new Error("Key not found");
+    await keyboard.evaluate((el, letter) => {
+      el.querySelector(
+        `.row > button[data-key='${letter.toLowerCase()}']`
+      ).click();
+    }, letter);
   }
 
-  const enter = await page.evaluateHandle(`
-        document.querySelector("body > game-app").shadowRoot.querySelector("#game > game-keyboard").shadowRoot.querySelector("#keyboard button[data-key='↵']")`);
-  if (enter) await enter.click();
+  await keyboard.evaluate((el) => {
+    el.querySelector(`.row > button[data-key='↵']`).click();
+  });
 
   await page.waitForTimeout(2000);
 

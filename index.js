@@ -25,6 +25,12 @@ const play = async () => {
       waitUntil: ["networkidle0", "load"],
     });
 
+    const gdpr = await page.evaluateHandle(`
+    document
+    .querySelector("#pz-gdpr-btn-accept")
+    `);
+    if (gdpr) await gdpr.click();
+
     const closeIcon = await page.evaluateHandle(`
     document
     .querySelector("body > game-app")
@@ -54,7 +60,7 @@ const play = async () => {
           ? await inquirer.prompt(startGameQuestion)
           : await inquirer.prompt(continueGameQuestion);
 
-      outputs = await makeGuess(page, guess, guessCount, suggestions);
+      outputs = await makeGuess(page, guess, guessCount);
 
       const response = guess
         .split("")
